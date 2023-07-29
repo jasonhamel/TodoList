@@ -1,3 +1,8 @@
 <%- include("partials/header.ejs") %>
-<h3>Hi :)</h3>
+<header>
+  <a class="links" href="today">Today</a>
+  <a class="links" href="week">Week</a>
+</header>
+<h1>Today's list of things to do</h1>
+<div><%- include("partials/list.ejs") %></div>
 <%- include("partials/footer.ejs") %>
