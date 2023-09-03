@@ -1,16 +1,17 @@
 <%if (locals.list) {%>
 <ul class="row">
-  <%for (let i = 0; i < list.length; i++) {%>
-  <li>
-    <label><input type="checkbox" /><%= list[i] %></label>
-  </li>
+  <% list.forEach( (listItem) => { %>
+  <ul>
+    <li>
+      <label><input type="checkbox" /><%= listItem.title %></label>
+    </li>
+  </ul>
+  <%})%> <%} else {%>
+  <h3>Add your items below</h3>
   <%}%>
+  <form method="post">
+    <label for="item">I need to: </label>
+    <input type="text" name="item" />
+    <input class="button" value="Add to List" type="submit" />
+  </form>
 </ul>
-<%} else {%>
-<h3>Add your items below</h3>
-<%}%>
-<form method="post">
-  <label for="item">I need to: </label>
-  <input type="text" name="item" />
-  <input class="button" value="Add to List" type="submit" />
-</form>
