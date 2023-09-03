@@ -1,10 +1,9 @@
 import express from "express";
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
+import _ from "lodash";
 
 const app = express();
-let todayList = [];
-let weekList = [];
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
@@ -36,6 +35,13 @@ const defaultItem3 = new Item({
 
 const defaultItems = [defaultItem1, defaultItem2, defaultItem3];
 
+const listSchema = {
+  name: String,
+  items: [itemsSchema],
+};
+
+const List = mongoose.model("List", listSchema);
+
 app.get("/", async function (req, res) {
   const emptyCheck = await Item.find();
 
@@ -45,29 +51,62 @@ app.get("/", async function (req, res) {
 
   const foundItems = await Item.find();
 
-  res.render("today.ejs", { page: "the Day", list: foundItems });
+  res.render("partials/list.ejs", { page: "Today", list: foundItems });
 });
 
-app.get("/today", function (req, res) {
-  res.redirect("/");
-});
+app.get("/:customListName", async (req, res) => {
+  const listName = _.capitalize(req.params.customListName);
+  const emptyCheck = await List.findOne({ name: listName });
 
-app.get("/week", function (req, res) {
-  res.render("week.ejs", { page: "the Week", list: weekList });
+  if (emptyCheck) {
+    res.render("partials/list.ejs", { page: listName, list: emptyCheck.items });
+  } else {
+    const list = new List({
+      name: listName,
+      items: defaultItems,
+    });
+    list.save();
+    res.render("partials/list.ejs", { page: listName, list: list.items });
+  }
 });
 
 app.post("/", async function (req, res) {
   const itemName = req.body.item;
+  const listName = req.body.list;
+
   const newItem = new Item({
     title: itemName,
   });
-  newItem.save();
-  res.redirect("/");
+
+  if (listName === "Today") {
+    newItem.save();
+    res.redirect("/");
+  } else {
+    List.findOne({ name: listName })
+      .then((foundList) => {
+        foundList.items.push(newItem);
+        foundList.save();
+        res.redirect("/" + listName);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
 });
 
-app.post("/week", function (req, res) {
-  weekList.push(req.body.item);
-  res.redirect("/week");
+app.post("/delete", async (req, res) => {
+  const toDelete = req.body.checkbox;
+  const listName = req.body.listName;
+  if (listName === "Today") {
+    await Item.findByIdAndRemove(toDelete);
+    res.redirect("/");
+  } else {
+    await List.findOneAndUpdate(
+      { name: listName },
+      { $pull: { items: { _id: toDelete } } }
+    );
+    res.redirect("/" + listName);
+  }
 });
 
 app.listen(3000, function () {

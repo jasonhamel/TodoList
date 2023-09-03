@@ -1,17 +1,31 @@
+<%- include("header.ejs") %>
+<h1><%=page%></h1>
 <%if (locals.list) {%>
 <ul class="row">
   <% list.forEach( (listItem) => { %>
   <ul>
     <li>
-      <label><input type="checkbox" /><%= listItem.title %></label>
+      <form action="/delete" method="post">
+        <label
+          ><input
+            type="checkbox"
+            name="checkbox"
+            value="<%= listItem._id %>"
+            onChange="this.form.submit()"
+          /><%= listItem.title %></label
+        >
+        <input type="hidden" name="listName" value="<%= page %>" />
+      </form>
     </li>
   </ul>
-  <%})%> <%} else {%>
-  <h3>Add your items below</h3>
+  <%})%>
   <%}%>
-  <form method="post">
+  <form action="/" method="post">
     <label for="item">I need to: </label>
     <input type="text" name="item" />
-    <input class="button" value="Add to List" type="submit" />
+    <button type="submit" name="list" value="<%= page %>" type="submit">
+      Add to list
+    </button>
   </form>
 </ul>
+<%- include("footer.ejs") %>
